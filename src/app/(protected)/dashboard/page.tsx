@@ -1,7 +1,8 @@
 "use client"
+import AddDocs from '@/components/AddDocs'
 import DocsList from '@/components/DocsList'
 import Navbar from '@/components/Navbar'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 const page = () => {
   return (
@@ -19,14 +20,7 @@ const page = () => {
         
         <div className='flex items-center gap-4'>
           <span className='text-lg text-gray-300'>New Document</span>
-          <button 
-            className='flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 
-                      hover:from-green-600 hover:to-emerald-600 text-2xl font-bold shadow-lg
-                      transition-all duration-200 transform hover:scale-110 active:scale-95
-                      hover:shadow-xl'
-          >
-            +
-          </button>
+         <AddDocs />
         </div>
       </div>
 

@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { collaboratorsData } from "@/types/collbaratere";
+// import { collaboratorsData } from "@/types/collbaratere";
 
-const Collaborators = () => {
+const Collaborators = ({collaboratorsData}) => {
   const [collaborators, setCollaborators] = useState(collaboratorsData);
 
   const handleToggle = (id: string) => {

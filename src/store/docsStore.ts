@@ -30,7 +30,7 @@ export const useDocsStore = create<DocsState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await axiosConfig.get(`/docs/${userId}`);
-      set({ documents: res.data.documents, loading: false });
+      set({singleDoc:null, documents: res.data.documents, loading: false });
     } catch (err) {
       console.error("Fetching all docs failed:", err);
       set({
