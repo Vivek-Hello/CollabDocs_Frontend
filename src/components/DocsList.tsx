@@ -5,19 +5,16 @@ import { Button } from './ui/button'
 import { useRouter } from 'next/navigation'
 
 const DocsList = () => {
-  const { documents, getAllDocs, leaveCollaborators, deleteDoc,singleDoc } = useDocsStore()
+  const { documents, getAllDocs, leaveCollaborators, deleteDoc } = useDocsStore()
   const { user } = UserStore()
-  const router = useRouter();
-  // Defensive typing below if user or user._id can be undefined
+  const router = useRouter()
   const id: string | undefined = user?._id ? user._id.toString() : undefined
-
-  // Only fetch docs if id exists
 
   useEffect(() => {
     if (id) {
-      getAllDocs(id);
+      getAllDocs(id)
     }
-  }, [id]) 
+  }, [id])
 
   const handleDelete = (docsId: string) => {
     if (!id) return
@@ -29,7 +26,6 @@ const DocsList = () => {
     leaveCollaborators(id, docsId)
   }
 
-  // Format date for better display
   const formatDate = (dateString: string) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -40,7 +36,7 @@ const DocsList = () => {
   }
 
   return (
-    <div  className='w-full px-4 sm:px-6 lg:px-8'>
+    <div className='w-full px-4 sm:px-6 lg:px-8'>
       {/* Header for mobile */}
       <div className='lg:hidden mb-4'>
         <h2 className='text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>
@@ -61,9 +57,12 @@ const DocsList = () => {
           </div>
           {/* Table Body */}
           {documents?.map((docs) => (
-            <div onClick={()=>{router.push(`/docs/${docs._id}`)}}
+            <div
+              onClick={() => {
+                router.push(`/docs/${docs._id}`)
+              }}
               key={docs._id}
-              className='grid grid-cols-12 gap-4 p-4 border-b border-zinc-700/50 last:border-b-0 hover:bg-zinc-800/50 transition-colors duration-200'
+              className='grid grid-cols-12 gap-4 p-4 border-b border-zinc-700/50 last:border-b-0 hover:bg-zinc-800/50 transition-colors duration-200 cursor-pointer'
             >
               <div className='col-span-5 text-white font-medium truncate'>
                 {docs.title}
@@ -78,7 +77,10 @@ const DocsList = () => {
                 {docs.owner._id === user?._id ? (
                   <Button
                     variant={'destructive'}
-                    onClick={() => handleDelete(docs._id)}
+                    onClick={e => {
+                      e.stopPropagation(); // <-- Prevent parent click for navigation
+                      handleDelete(docs._id)
+                    }}
                     className='w-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600'
                     size='sm'
                   >
@@ -87,7 +89,10 @@ const DocsList = () => {
                 ) : (
                   <Button
                     variant={'destructive'}
-                    onClick={() => handleLeave(docs._id)}
+                    onClick={e => {
+                      e.stopPropagation(); // <-- Prevent parent click for navigation
+                      handleLeave(docs._id)
+                    }}
                     className='w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
                     size='sm'
                   >
@@ -103,9 +108,12 @@ const DocsList = () => {
       {/* Mobile Card View */}
       <div className='lg:hidden space-y-4'>
         {documents?.map((docs) => (
-          <div onClick={()=>{router.push(`/docs/${docs._id}`)}}
+          <div
+            onClick={() => {
+              router.push(`/docs/${docs._id}`)
+            }}
             key={docs._id}
-            className='bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-700/50 shadow-2xl p-4 space-y-3'
+            className='bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-700/50 shadow-2xl p-4 space-y-3 cursor-pointer'
           >
             {/* Document Title */}
             <div className='flex justify-between items-start'>
@@ -113,7 +121,10 @@ const DocsList = () => {
               {docs.owner._id === user?._id ? (
                 <Button
                   variant={'destructive'}
-                  onClick={() => handleDelete(docs._id)}
+                  onClick={e => {
+                    e.stopPropagation(); // <-- Prevent parent click for navigation
+                    handleDelete(docs._id)
+                  }}
                   className='bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 flex-shrink-0'
                   size='sm'
                 >
@@ -122,7 +133,10 @@ const DocsList = () => {
               ) : (
                 <Button
                   variant={'destructive'}
-                  onClick={() => handleLeave(docs._id)}
+                  onClick={e => {
+                    e.stopPropagation(); // <-- Prevent parent click for navigation
+                    handleLeave(docs._id)
+                  }}
                   className='bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 flex-shrink-0'
                   size='sm'
                 >

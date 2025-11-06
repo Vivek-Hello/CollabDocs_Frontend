@@ -7,6 +7,7 @@ interface DocsState {
   singleDoc: DocumentType | null;
   loading: boolean;
   error: string | null;
+  collbarotorData : Collaborator[] | null;
 
   getAllDocs: (userId: string) => Promise<void>;
   getSingleDoc: (id: string) => Promise<void>;
@@ -14,7 +15,7 @@ interface DocsState {
   updateDoc: (id: string, content: string) => Promise<void>;
   deleteDoc: (id: string, owner: string) => Promise<void>;
   restoreVersion: (id: string, versionIndex: number) => Promise<void>;
-  updatePermission: (id: string, userId: string, permission: string) => Promise<void>;
+  updatePermission: (id: string, userId: string) => Promise<void>;
   addCollaborators: (id: string, collaborators: Collaborator[]) => Promise<void>;
   leaveCollaborators: (id: string, docs:string) => Promise<void>; 
 }
@@ -24,13 +25,13 @@ export const useDocsStore = create<DocsState>((set, get) => ({
   singleDoc: null,
   loading: false,
   error: null,
-
+  collbarotorData:null,
   // ✅ Get all docs for a user (owned or collaborated)
   getAllDocs: async (userId) => {
     set({ loading: true, error: null });
     try {
       const res = await axiosConfig.get(`/docs/${userId}`);
-      set({singleDoc:null, documents: res.data.documents, loading: false });
+      set({ documents: res.data.documents, loading: false });
     } catch (err) {
       console.error("Fetching all docs failed:", err);
       set({
@@ -46,7 +47,7 @@ export const useDocsStore = create<DocsState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await axiosConfig.get(`/docs/single/${id}`);
-      set({ singleDoc: res.data.docs, loading: false });
+      set({ singleDoc: res.data.docs,collbarotorData: res.data.docs.collaborators , loading: false });
     } catch (err) {
       console.error("Fetching single doc failed:", err);
       set({
@@ -115,14 +116,13 @@ export const useDocsStore = create<DocsState>((set, get) => ({
   },
 
   // ✅ Update collaborator permission
-  updatePermission: async (id, userId, permission) => {
+  updatePermission: async (id, userId) => {
     set({ loading: true, error: null });
     try {
       const res = await axiosConfig.put(`/docs/${id}/permission`, {
         userId,
-        permission,
       });
-      set({ singleDoc: res.data.docs, loading: false });
+      set({ collbarotorData: res.data.docs.collaborators, loading: false });
     } catch (err) {
       console.error("Updating permission failed:", err);
       set({ loading: false, error: "Failed to update permission" });
