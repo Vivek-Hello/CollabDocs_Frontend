@@ -8,7 +8,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import Collaborators from "@/components/collaborators";
 import { useDocsStore } from "@/store/docsStore";
 import { useParams } from "next/navigation";
-import { UserStore } from "@/store/userStore";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, ArrowLeft } from "lucide-react";
@@ -17,20 +17,20 @@ import { useRouter } from "next/navigation";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function Page() {
-  const { getSingleDoc, singleDoc, updateDoc, collbarotorData } = useDocsStore();
+  const { getSingleDoc, singleDoc, updateDoc, } = useDocsStore();
   const [mounted, setMounted] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const params = useParams();
-  const id = typeof params.id === "string" ? params.id : "";
-  const { user } = UserStore();
+  const {id} = useParams();
+
+  
   const router = useRouter();
 
   // Fetch doc on mount or id change
   useEffect(() => {
-    if (id) getSingleDoc(id);
+    if (id) getSingleDoc(id.toString());
   }, [id, getSingleDoc]);
 
   // Update editor when document loads
@@ -53,7 +53,7 @@ export default function Page() {
     if (!id) return;
     setIsSaving(true);
     try {
-      await updateDoc({ id, content, title });
+      await updateDoc( id.toString(), content);
       // Optional: Show success notification
     } catch (error) {
       console.error("Failed to save document:", error);
@@ -194,9 +194,8 @@ export default function Page() {
 
                 {/* Collaborators */}
                 <div className="bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-700/50 p-6 shadow-2xl">
-                  <Collaborators
-                    collaboratorsData={collbarotorData}
-                    isOwner={user?._id === singleDoc?.owner._id}
+                  <Collaborators 
+                    id={id}
                   />
                 </div>
               </div>

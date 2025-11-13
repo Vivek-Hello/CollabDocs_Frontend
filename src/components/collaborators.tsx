@@ -1,80 +1,73 @@
 "use client";
 import { useDocsStore } from "@/store/docsStore";
-import { useParams } from "next/navigation";
-import React, { useState } from "react";
-// import { collaboratorsData } from "@/types/collbaratere";
+import React, { useEffect, useState } from "react";
+import AddCollabs from "./AddCollabs";
+import { UserStore } from "@/store/userStore"; 
+const Collaborators = ({ id}) => {
+  const { updatePermission,getIsOwner,isOwner,getAllCollas,collbarotorData,singleDoc} = useDocsStore();
+  const {user} = UserStore();
+  const [collaborators, setCollaborators] = useState();
+  const [loadingId, setLoadingId] = useState(null);
 
-const Collaborators = ({collaboratorsData ,isOwner}) => {
-  const {updatePermission} = useDocsStore();
+  // Sync with parent data
+  useEffect(() => {
+    getAllCollas(id);
+    setCollaborators(collbarotorData);
+    getIsOwner(user?._id);
+  }, [collbarotorData]);
+
+
   
-  const [collaborators, setCollaborators] = useState(collaboratorsData);
-
-  const handleToggle = async(id) => {
-  if (!isOwner) return; // Only allow the owner to toggle
-  const params = useParams();
-    const docsid = typeof params.id === "string" ? params.id : "";
-    const userId =id;
-  await updatePermission(docsid,userId);
-  setCollaborators((prev) =>
-    prev.map((c) =>
-      c.user._id === id
-        ? { ...c, permission: c.permission === "edit" ? "view" : "edit" }
-        : c
-    )
-  );
-};
- 
-
-  if (collaboratorsData === null || collaboratorsData.length === 0) {
-      return (
-        <div>
-           <span>No collabrater are added</span>
-        </div>
+  const handleToggle = async (userId) => {
+    if (!isOwner) return;
+    setLoadingId(userId);
+    await updatePermission(id, userId);
+    setCollaborators((prev) =>
+      prev.map((c) =>
+        c.user._id === userId
+          ? { ...c, permission: c.permission === "edit" ? "view" : "edit" }
+          : c
       )
+    );
+    setLoadingId(null);
+  };
+
+  if (!collaborators || collaborators.length === 0) {
+    return (
+      <div className="flex justify-between items-center ">
+        <span>No collaborator is added</span>
+        { isOwner && <AddCollabs id={id?.toString()}  />}
+      </div>
+    );
   }
 
   return (
-    <div className=" bg-zinc500 shadow-2xs rounded-lg  mx-4 p-4 border-2 flex flex-col  items-start gap-4 font-mono " >
-      <h1 className=" text-2xl ">Collaborators :</h1>
-      {collaboratorsData.map((data) => (
+    <div className="bg-zinc500 shadow-2xs rounded-lg p-2 border-2 flex flex-col items-start gap-4 font-mono">
+      <div className="flex w-full p-2 justify-between items-center">
+        <h1 className="">Collaborators :</h1>
+         { isOwner && <AddCollabs id={id?.toString()}  />}
+      </div>
+      {collaborators.map((data) => (
         <div
           key={data.user._id}
-          className=" w-full shadow-2xl flex justify-between items-center bg-gray-100 px-4 py-2 rounded-lg gap-2"
+          className="w-full shadow-2xl flex justify-between items-center bg-gray-100 px-4 py-2 rounded-lg gap-2"
         >
-          <div className="flex  items-center gap-3">
-            {/* <img
-              src={data.user.avatar}
-              alt={data.user.name}
-              className="w-8 h-8 rounded-full"
-            /> */}
-            <span className="font-semibold text-gray-800">
-              {data.user.email}
-            </span>
+          <div className="flex items-center gap-3">
+            {/* Optional: <img src={data.user.avatar} alt={data.user.name} ... /> */}
+            <span className="font-semibold text-gray-800">{data.user.name}</span>
           </div>
-
-          <button 
+          <button
             onClick={() => handleToggle(data.user._id)}
             className={`px-3 py-1 text-sm rounded-md font-medium ${
               data.permission === "edit"
                 ? "bg-green-200 text-green-800"
                 : "bg-yellow-200 text-yellow-800"
             }`}
+            disabled={loadingId === data.user._id}
+            aria-label={`Change permission for ${data.user.email}`}
           >
-            {data.permission}
+            {loadingId === data.user._id ? "..." : data.permission}
           </button>
-
- 
-              {/* for showing collaborators */}
-           {/* <button 
-            onClick={() => handleToggle(data.user._id)}
-            className={`px-3 py-1 text-sm rounded-md font-medium ${
-              data.permission === "edit"
-                ? "bg-green-200 text-green-800"
-                : "bg-yellow-200 text-yellow-800"
-            }`}
-          >
-            {data.permission}
-          </button> */}
         </div>
       ))}
     </div>

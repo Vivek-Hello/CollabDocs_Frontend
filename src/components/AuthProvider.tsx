@@ -7,21 +7,26 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const { user, loading, checkAuth } = UserStore();
   const router = useRouter();
 
-  // ✅ Call checkAuth only once when the app loads
+  // Call checkAuth once on mount
   useEffect(() => {
     checkAuth();
-    if (user) {
-      router.push('/dashboard');
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ While checking token, show loading UI
+  // Redirect ONLY after auth check is done
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/login");
+      }
+      // If you want to redirect authenticated users away from protected routes, use this:
+      // else { router.push("/dashboard"); }
+    }
+  }, [loading, user, router]);
+
+  // Show a loading UI while auth check is underway
   if (loading) return <div className="p-10 text-white text-center">Loading...</div>;
 
-  // ✅ If checkAuth fails -> redirect to login
-  if (!user) {
-    router.push("/login");
-  }
-
+  // When user is authenticated, render the children
   return <>{children}</>;
 }

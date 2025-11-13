@@ -8,7 +8,8 @@ interface DocsState {
   loading: boolean;
   error: string | null;
   collbarotorData : Collaborator[] | null;
-
+  isOwner : boolean;
+  
   getAllDocs: (userId: string) => Promise<void>;
   getSingleDoc: (id: string) => Promise<void>;
   createDoc: (docsData: DocumentInType) => Promise<void>;
@@ -16,8 +17,11 @@ interface DocsState {
   deleteDoc: (id: string, owner: string) => Promise<void>;
   restoreVersion: (id: string, versionIndex: number) => Promise<void>;
   updatePermission: (id: string, userId: string) => Promise<void>;
-  addCollaborators: (id: string, collaborators: Collaborator[]) => Promise<void>;
+  addCollaborators: (id: string, collaborators: {id:string,permesion:string}[]) => Promise<void>;
   leaveCollaborators: (id: string, docs:string) => Promise<void>; 
+  getIsOwner:(userId:string) =>void;
+  getAllCollas:(docsId:string) =>Promise<void>;
+
 }
 
 export const useDocsStore = create<DocsState>((set, get) => ({
@@ -79,6 +83,8 @@ export const useDocsStore = create<DocsState>((set, get) => ({
   updateDoc: async (id, content) => {
     set({ loading: true, error: null });
     try {
+      console.log(id);
+      
       const res = await axiosConfig.put(`/docs/${id}`, { content });
       set({ singleDoc: res.data.docs, loading: false });
     } catch (err) {
@@ -129,19 +135,28 @@ export const useDocsStore = create<DocsState>((set, get) => ({
     }
   },
 
+
+
   // ✅ Add collaborators
-  addCollaborators: async (id, collaborators) => {
-    set({ loading: true, error: null });
-    try {
-      const res = await axiosConfig.post(`/docs/${id}/collaborators`, {
-        collaborators,
-      });
-      set({ singleDoc: res.data.docs, loading: false });
-    } catch (err) {
-      console.error("Adding collaborators failed:", err);
-      set({ loading: false, error: "Failed to add collaborators" });
-    }
-  },
+  addCollaborators: async (id ,collaborators) => {
+  set({ loading: true, error: null });
+  try {
+    const res = await axiosConfig.post(`/docs/${id}/collaborators`, {
+      collaborators,
+    });
+    set({ singleDoc: res.data.docs, loading: false });
+    // Return backend feedback for use in UI
+    return {
+      userNotFound: res.data.userNotFound,
+      userAlreadyAdded: res.data.userAlreadyAdded
+    };
+  } catch (err) {
+    console.error("Adding collaborators failed:", err);
+    set({ loading: false, error: "Failed to add collaborators" });
+    return undefined;
+  }
+},
+
 
  leaveCollaborators: async (id: string, docsId: string) => {
   set({ loading: true, error: null });
@@ -157,6 +172,34 @@ export const useDocsStore = create<DocsState>((set, get) => ({
     }));
 
     console.log("Left document:", res.data.message);
+  } catch (err) {
+    console.error("Leave collaborator failed:", err);
+    set({ loading: false, error: "Failed to leave document" });
+  }
+},
+
+getIsOwner: (userId: string) => {
+  set((state) => {
+    const ownerId = state.singleDoc?.owner;
+    return {
+      isOwner: !!userId && !!ownerId && userId.toString() === ownerId.toString(),
+    };
+  });
+},
+
+
+getAllCollas: async(docsId:string) => {
+  set({ loading: true, error: null });
+  try {
+    const res = await axiosConfig.get(`/docs/collabs/${docsId}`);
+
+  
+    set({
+      collbarotorData : res.data.collaborators,
+      loading: false,
+    });
+
+
   } catch (err) {
     console.error("Leave collaborator failed:", err);
     set({ loading: false, error: "Failed to leave document" });
