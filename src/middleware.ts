@@ -1,39 +1,28 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-
-
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("token");
+  const pathname = req.nextUrl.pathname;
 
-  // const publicPaths = ["/login", "/signup", "/"];
+  // Only these 3 are public — exact matches
+  const publicPaths = ["/", "/login", "/signup"];
+  const isPublicPath = publicPaths.includes(pathname);
 
-
- const publicPaths = ["/login", "/signup", "/"];
-const pathname = req.nextUrl.pathname;
-const isPublicPath = pathname === "/" || publicPaths.some((path) => pathname.startsWith(path) && path !== "/");
-
-
-  // If user is not logged in & trying to access protected route
-  if (!token && !isPublicPath ) {
-    const loginUrl = new URL("/login", req.url);
-    return NextResponse.redirect(loginUrl);
+  // 1️⃣ Not logged in → restrict all private routes
+  if (!token && !isPublicPath) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // If user is logged in & trying to access login/signup again
-if (token && isPublicPath) {
-   
-  // If user is already logged in, prevent them from accessing login/signup again
-  const redirectUrl = new URL("/dashboard", req.url);
-  return NextResponse.redirect(redirectUrl);
-}
+  // 2️⃣ Logged in → block ONLY login/signup pages
+  if (token && (pathname === "/login" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
-
-  // Otherwise allow request
+  // 3️⃣ Everything else allowed
   return NextResponse.next();
 }
 
-// Define paths the middleware should run on
 export const config = {
   matcher: ["/((?!_next|api|static|favicon.ico).*)"],
 };

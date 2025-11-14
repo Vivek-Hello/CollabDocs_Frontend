@@ -13,11 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import {UserStore} from "@/store/userStore"
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function Page() {
-  const { getSingleDoc, singleDoc, updateDoc, } = useDocsStore();
+  const {user} = UserStore()
+  const { getSingleDoc, singleDoc, updateDoc,collbarotorData ,isOwner} = useDocsStore();
   const [mounted, setMounted] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
@@ -25,6 +26,12 @@ export default function Page() {
 
   const {id} = useParams();
 
+  const [isEditor,setIsEditor] = useState(true);
+  useEffect(()=>{
+    setIsEditor(()=>{collbarotorData?.some(
+  c => c.user._id === user._id && c.permission === "edit"
+ ) });
+  },[collbarotorData])
   
   const router = useRouter();
 
@@ -139,6 +146,7 @@ export default function Page() {
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <ReactQuill
                   theme="snow"
+                  readOnly ={!isEditor && !isOwner}
                   value={content}
                   onChange={handleContentChange}
                   className="h-[70vh] min-h-[500px] [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:border-gray-200 [&_.ql-editor]:text-gray-900"
