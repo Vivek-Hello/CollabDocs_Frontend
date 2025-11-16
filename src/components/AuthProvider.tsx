@@ -18,13 +18,19 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
 useEffect(() => {
+  console.log("Current pathname:", pathname, "User:", user, "Loading:", loading);
   if (!user && !loading) {
     router.push("/login");
   }
   // Redirect only if on login/root page, NOT on /docs/:id etc.
-  if (user && ["/", "/login"].includes(pathname)) {
-    router.push("/dashboard");
-  }
+ const redirectToDashboardPaths = ["/", "/login"];
+ const privateRoute  = "/docs";
+ if (user && pathname.includes(privateRoute)) {
+    router.refresh();
+ }
+ else if (user && redirectToDashboardPaths.includes(pathname)) {
+  router.push("/dashboard");
+}
 }, [user, loading, pathname, router]);
 
   // Show a loading UI while auth check is underway

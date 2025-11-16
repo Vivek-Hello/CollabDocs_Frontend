@@ -15,7 +15,7 @@ export function middleware(req: NextRequest) {
   }
 
   // 2️⃣ Logged in → block ONLY login/signup pages
-  if (token && (pathname === "/login" || pathname === "/signup")) {
+  if (token && (pathname === "/login" || pathname === "/signup" || pathname === "/")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "quill/dist/quill.snow.css";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -8,39 +8,44 @@ import "react-loading-skeleton/dist/skeleton.css";
 import Collaborators from "@/components/collaborators";
 import { useDocsStore } from "@/store/docsStore";
 import { useParams } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {UserStore} from "@/store/userStore"
+import { UserStore } from "@/store/userStore";
+import { io } from "socket.io-client";
+
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+
 export default function Page() {
-  const {user} = UserStore()
-  const { getSingleDoc, singleDoc, updateDoc,collbarotorData ,isOwner} = useDocsStore();
+  const { user } = UserStore();
+  const { getSingleDoc, singleDoc, updateDoc, collbarotorData, isOwner } = useDocsStore();
   const [mounted, setMounted] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  const {id} = useParams();
-
-  const [isEditor,setIsEditor] = useState(true);
-  useEffect(()=>{
-    setIsEditor(()=>{collbarotorData?.some(
-  c => c.user._id === user._id && c.permission === "edit"
- ) });
-  },[collbarotorData])
-  
+  const { id } = useParams();
+  const [isEditor, setIsEditor] = useState(true);
   const router = useRouter();
+  const socketRef = useRef(null);
+
+  // Permission check: is user editor?
+  useEffect(() => {
+    setIsEditor(
+      collbarotorData?.some(
+        c => c.user._id === user._id && c.permission === "edit"
+      ) || false
+    );
+  }, [collbarotorData, user]);
 
   // Fetch doc on mount or id change
   useEffect(() => {
     if (id) getSingleDoc(id.toString());
   }, [id, getSingleDoc]);
 
-  // Update editor when document loads
+  // Update local state when document loads
   useEffect(() => {
     if (singleDoc) {
       setTitle(singleDoc.title || "");
@@ -50,18 +55,37 @@ export default function Page() {
 
   useEffect(() => setMounted(true), []);
 
-  // Handle content changes with debounce
+  // --- Socket.IO integration ---
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+    if (id) {
+      socketRef.current.emit("joinDoc", { docId: id.toString() });
+    }
+    socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
+      setContent(remoteContent);
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, [id]);
+
+  // Broadcast change
   const handleContentChange = (value: string) => {
     setContent(value);
+    if (isEditor || isOwner) {
+      socketRef.current?.emit("docChange", { docId: id.toString(), content: value });
+    }
   };
 
-  // Save document
+  // Save document (manual save to backend)
   const handleSave = async () => {
     if (!id) return;
     setIsSaving(true);
     try {
-      await updateDoc( id.toString(), content);
-      // Optional: Show success notification
+      await updateDoc(id.toString(), content);
+      // Optional: success notification
     } catch (error) {
       console.error("Failed to save document:", error);
     } finally {
@@ -99,7 +123,6 @@ export default function Page() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            
             <div className="flex-1 min-w-0">
               {isLoading ? (
                 <Skeleton width={300} height={32} baseColor="#3f3f46" highlightColor="#52525b" />
@@ -146,7 +169,7 @@ export default function Page() {
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <ReactQuill
                   theme="snow"
-                  readOnly ={!isEditor && !isOwner}
+                  readOnly={!isEditor && !isOwner}
                   value={content}
                   onChange={handleContentChange}
                   className="h-[70vh] min-h-[500px] [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:border-gray-200 [&_.ql-editor]:text-gray-900"

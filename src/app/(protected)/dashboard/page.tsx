@@ -2,7 +2,7 @@
 import AddDocs from '@/components/AddDocs'
 import DocsList from '@/components/DocsList'
 import Navbar from '@/components/Navbar'
-import React, { useEffect } from 'react'
+import React from 'react'
 
 const page = () => {
   return (
