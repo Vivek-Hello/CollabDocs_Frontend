@@ -17,7 +17,7 @@ import { io } from "socket.io-client";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ;
 
 export default function Page() {
   const { user } = UserStore();
@@ -35,7 +35,7 @@ export default function Page() {
   useEffect(() => {
     setIsEditor(
       collbarotorData?.some(
-        c => c.user._id === user._id && c.permission === "edit"
+        c => c.user._id === user?._id && c.permission === "edit"
       ) || false
     );
   }, [collbarotorData, user]);

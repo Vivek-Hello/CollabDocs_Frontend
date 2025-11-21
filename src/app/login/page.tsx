@@ -2,13 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
-import { FaRegEye } from "react-icons/fa6";
-import { FaRegEyeSlash } from "react-icons/fa6";
-import React from "react";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
 import { UserLogin } from "@/types";
 import { UserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
+
 
 const Page = () => {
   const { user, login } = UserStore();
@@ -17,7 +16,7 @@ const Page = () => {
     password: "",
   });
   const router = useRouter();
-  
+ 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(formData);
@@ -26,6 +25,7 @@ const Page = () => {
     }
   };
 
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -33,11 +33,9 @@ const Page = () => {
       [name]: value,
     }));
   };
-  
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+ 
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword((s) => !s);
 
   return (
     <div className="flex justify-center items-center min-h-screen w-full bg-gradient-to-br from-zinc-900 via-gray-900 to-zinc-800 text-white font-mono">
@@ -99,13 +97,13 @@ const Page = () => {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   className="pr-10 bg-zinc-800/50 border-zinc-600 text-white placeholder:text-gray-400 
-                           focus:bg-zinc-800/70 focus:border-blue-400 transition-all duration-200
-                           rounded-lg px-4 py-2"
+                            focus:bg-zinc-800/70 focus:border-blue-400 transition-all duration-200
+                            rounded-lg px-4 py-2"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 
-                           hover:text-white transition-colors duration-200 hover:scale-110"
+                            hover:text-white transition-colors duration-200 hover:scale-110"
                   onClick={togglePasswordVisibility}
                 >
                   {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
@@ -129,7 +127,7 @@ const Page = () => {
           {/* Additional Links */}
           <div className="text-center pt-2">
             <p className="text-gray-400 text-sm">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <a 
                 href="/signup" 
                 className="text-blue-400 hover:text-blue-300 underline transition-colors duration-200"
