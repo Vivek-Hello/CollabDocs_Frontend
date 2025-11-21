@@ -52,7 +52,7 @@ export const UserStore = create<UserState>((set) =>({
   logout:async()=>{
     set({loading:true,error:null});
     try {
-        const res = await axiosConfig.get("/user/logout");
+         await axiosConfig.get("/user/logout");
         set({user:null,loading:false});
     } catch (err) {
       console.error("LogOut failed:", err);
