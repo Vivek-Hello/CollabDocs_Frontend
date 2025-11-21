@@ -14,7 +14,7 @@ const DocsList = () => {
     if (id) {
       getAllDocs(id)
     }
-  }, [id])
+  },[id])
 
   const handleDelete = (docsId: string) => {
     if (!id) return

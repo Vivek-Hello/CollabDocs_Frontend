@@ -48,7 +48,7 @@ export interface DocumentType {
 }
 
 interface DocumentInType {
-    id: String; 
+  id: string; 
    title: string;
 }
 

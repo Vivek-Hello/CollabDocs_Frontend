@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 import AddCollabs from "./AddCollabs";
 import { UserStore } from "@/store/userStore"; 
 const Collaborators = ({ id}) => {
-  const { updatePermission,getIsOwner,isOwner,getAllCollas,collbarotorData,singleDoc} = useDocsStore();
+  const { updatePermission,getIsOwner,isOwner,getAllCollas,collbarotorData} = useDocsStore();
   const {user} = UserStore();
-  const [collaborators, setCollaborators] = useState();
+  const [collaborators, setCollaborators] = useState(collbarotorData);
   const [loadingId, setLoadingId] = useState(null);
 
   // Sync with parent data
@@ -14,7 +14,7 @@ const Collaborators = ({ id}) => {
     getAllCollas(id);
     setCollaborators(collbarotorData);
     getIsOwner(user?._id);
-  }, [collbarotorData]);
+  }, [collbarotorData,user]);
 
 
   

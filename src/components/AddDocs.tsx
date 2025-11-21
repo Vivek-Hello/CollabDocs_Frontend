@@ -33,6 +33,9 @@ export default function AddDocs() {
       // Optionally close dialog here
     } catch (err) {
       // Handle any errors, maybe show a toast
+      console.log('====================================');
+      console.log(err);
+      console.log('====================================');
     } finally {
       setLoading(false);
     }
