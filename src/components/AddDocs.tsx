@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { UserStore } from "@/store/userStore";
 import { useDocsStore } from '@/store/docsStore'; // <-- import your doc store!
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AddDocs() {
   const [title, setTitle] = useState("");
@@ -31,11 +32,9 @@ export default function AddDocs() {
       await createDoc({ title, id: user._id });
       setTitle(""); // Reset input
       // Optionally close dialog here
-    } catch (err) {
+    } catch (err:any) {
       // Handle any errors, maybe show a toast
-      console.log('====================================');
-      console.log(err);
-      console.log('====================================');
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }

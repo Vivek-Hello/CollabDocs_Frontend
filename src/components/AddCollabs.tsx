@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDocsStore } from '@/store/docsStore';
 
+
 type Member = { email: string; permission: "edit" | "view" };
 
 const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
@@ -36,10 +37,10 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
     setMembers(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit =  (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || members.length === 0) return;
-    await addCollaborators(id, members); // use store function
+     addCollaborators(id,members); // use store function
     setMembers([]);
   };
 
@@ -123,8 +124,8 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={loading || members.length === 0}>
-              {loading ? "Adding..." : "Invite Collaborators"}
+            <Button type="submit" >
+              { "Invite Collaborators"}
             </Button>
           </DialogFooter>
         </form>

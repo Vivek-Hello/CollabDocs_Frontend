@@ -1,9 +1,13 @@
 'use client'
 import Link from "next/link";
+import { Toaster } from 'react-hot-toast';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-700 via-purple-800 to-gray-900 text-white font-mono">
+      <Toaster  position="top-right"
+  reverseOrder={false}
+  gutter={8}/>
       <div className="bg-zinc-900/90 rounded-3xl border border-zinc-700 shadow-2xl p-10 max-w-lg w-full text-center">
         <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
           🚀 CollabDocs

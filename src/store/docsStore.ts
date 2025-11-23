@@ -17,7 +17,7 @@ interface DocsState {
   deleteDoc: (id: string, owner: string) => Promise<void>;
   restoreVersion: (id: string, versionIndex: number) => Promise<void>;
   updatePermission: (id: string, userId: string) => Promise<void>;
-  addCollaborators: (id: string, collaborators: {id:string,permesion:string}[]) => Promise<void>;
+  addCollaborators:(id:string, collaboratorsArr: { id: string; permesion: string }[]) =>Promise<void>;
   leaveCollaborators: (id: string, docs:string) => Promise<void>; 
   getIsOwner:(userId:string) =>void;
   getAllCollas:(docsId:string) =>Promise<void>;
@@ -83,8 +83,6 @@ export const useDocsStore = create<DocsState>((set, get) => ({
   updateDoc: async (id, content) => {
     set({ loading: true, error: null });
     try {
-      console.log(id);
-      
       const res = await axiosConfig.put(`/docs/${id}`, { content });
       set({ singleDoc: res.data.docs, loading: false });
     } catch (err) {
@@ -139,7 +137,7 @@ export const useDocsStore = create<DocsState>((set, get) => ({
 
   // ✅ Add collaborators
   addCollaborators: async (id ,collaborators) => {
-  set({ loading: true, error: null });
+  set({ loading: false, error: null });
   try {
     const res = await axiosConfig.post(`/docs/${id}/collaborators`, {
       collaborators,

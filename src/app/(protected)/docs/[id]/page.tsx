@@ -13,15 +13,15 @@ import { Input } from "@/components/ui/input";
 import { Save, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserStore } from "@/store/userStore";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ;
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 
 export default function Page() {
   const { user } = UserStore();
   const { getSingleDoc, singleDoc, updateDoc, collbarotorData, isOwner } = useDocsStore();
+
   const [mounted, setMounted] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
@@ -29,7 +29,9 @@ export default function Page() {
   const { id } = useParams();
   const [isEditor, setIsEditor] = useState(true);
   const router = useRouter();
-  const socketRef = useRef(null);
+
+  // type the socketRef as nullable Socket instance
+  const socketRef = useRef<Socket | null>(null);
 
   // Permission check: is user editor?
   useEffect(() => {
@@ -57,6 +59,8 @@ export default function Page() {
 
   // --- Socket.IO integration ---
   useEffect(() => {
+    // connect only if SOCKET_URL exists
+    if (!SOCKET_URL) return;
     socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
     if (id) {
@@ -67,15 +71,15 @@ export default function Page() {
     });
 
     return () => {
-      socketRef.current.disconnect();
+      socketRef.current?.disconnect();
     };
   }, [id]);
 
   // Broadcast change
   const handleContentChange = (value: string) => {
     setContent(value);
-    if (isEditor || isOwner) {
-      socketRef.current?.emit("docChange", { docId: id.toString(), content: value });
+    if ((isEditor || isOwner) && socketRef.current) {
+      socketRef.current.emit("docChange", { docId: id?.toString(), content: value });
     }
   };
 
@@ -85,7 +89,7 @@ export default function Page() {
     setIsSaving(true);
     try {
       await updateDoc(id.toString(), content);
-      // Optional: success notification
+      // Optionally show a success notification here
     } catch (error) {
       console.error("Failed to save document:", error);
     } finally {

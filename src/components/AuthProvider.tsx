@@ -18,7 +18,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
 useEffect(() => {
-  console.log("Current pathname:", pathname, "User:", user, "Loading:", loading);
+ 
   if (!user && !loading) {
     router.push("/login");
   }
