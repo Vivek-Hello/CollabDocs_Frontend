@@ -7,11 +7,10 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 import Collaborators from "@/components/collaborators";
 import { useDocsStore } from "@/store/docsStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { UserStore } from "@/store/userStore";
 import { io, Socket } from "socket.io-client";
 
@@ -30,14 +29,14 @@ export default function Page() {
   const [isEditor, setIsEditor] = useState(true);
   const router = useRouter();
 
-  // type the socketRef as nullable Socket instance
+  // typed socket ref
   const socketRef = useRef<Socket | null>(null);
 
   // Permission check: is user editor?
   useEffect(() => {
     setIsEditor(
       collbarotorData?.some(
-        c => c.user._id === user?._id && c.permission === "edit"
+        (c) => c.user._id === user?._id && c.permission === "edit"
       ) || false
     );
   }, [collbarotorData, user]);
@@ -59,13 +58,14 @@ export default function Page() {
 
   // --- Socket.IO integration ---
   useEffect(() => {
-    // connect only if SOCKET_URL exists
     if (!SOCKET_URL) return;
+
     socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
     if (id) {
       socketRef.current.emit("joinDoc", { docId: id.toString() });
     }
+
     socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
       setContent(remoteContent);
     });
@@ -73,13 +73,16 @@ export default function Page() {
     return () => {
       socketRef.current?.disconnect();
     };
-  }, [id]);
+  }, [id, SOCKET_URL]);
 
   // Broadcast change
   const handleContentChange = (value: string) => {
     setContent(value);
     if ((isEditor || isOwner) && socketRef.current) {
-      socketRef.current.emit("docChange", { docId: id?.toString(), content: value });
+      socketRef.current.emit("docChange", {
+        docId: id?.toString(),
+        content: value,
+      });
     }
   };
 
@@ -89,7 +92,6 @@ export default function Page() {
     setIsSaving(true);
     try {
       await updateDoc(id.toString(), content);
-      // Optionally show a success notification here
     } catch (error) {
       console.error("Failed to save document:", error);
     } finally {
@@ -129,7 +131,12 @@ export default function Page() {
             </Button>
             <div className="flex-1 min-w-0">
               {isLoading ? (
-                <Skeleton width={300} height={32} baseColor="#3f3f46" highlightColor="#52525b" />
+                <Skeleton
+                  width={300}
+                  height={32}
+                  baseColor="#3f3f46"
+                  highlightColor="#52525b"
+                />
               ) : (
                 <Input
                   value={title}
@@ -144,7 +151,12 @@ export default function Page() {
           {/* Actions */}
           <div className="flex items-center gap-3">
             {isLoading ? (
-              <Skeleton width={100} height={40} baseColor="#3f3f46" highlightColor="#52525b" />
+              <Skeleton
+                width={100}
+                height={40}
+                baseColor="#3f3f46"
+                highlightColor="#52525b"
+              />
             ) : (
               <Button
                 onClick={handleSave}
@@ -166,8 +178,16 @@ export default function Page() {
           <div className="flex-1 min-w-0">
             {isLoading ? (
               <div className="space-y-4">
-                <Skeleton height={60} baseColor="#3f3f46" highlightColor="#52525b" />
-                <Skeleton height={400} baseColor="#3f3f46" highlightColor="#52525b" />
+                <Skeleton
+                  height={60}
+                  baseColor="#3f3f46"
+                  highlightColor="#52525b"
+                />
+                <Skeleton
+                  height={400}
+                  baseColor="#3f3f46"
+                  highlightColor="#52525b"
+                />
               </div>
             ) : (
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -179,13 +199,13 @@ export default function Page() {
                   className="h-[70vh] min-h-[500px] [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:border-gray-200 [&_.ql-editor]:text-gray-900"
                   modules={{
                     toolbar: [
-                      [{ 'header': [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'color': [] }, { 'background': [] }],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      [{ 'indent': '-1'}, { 'indent': '+1' }],
-                      ['link', 'image'],
-                      ['clean']
+                      [{ header: [1, 2, 3, false] }],
+                      ["bold", "italic", "underline", "strike"],
+                      [{ color: [] }, { background: [] }],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      [{ indent: "-1" }, { indent: "+1" }],
+                      ["link", "image"],
+                      ["clean"],
                     ],
                   }}
                 />
@@ -197,8 +217,18 @@ export default function Page() {
           <div className="lg:w-80 flex-shrink-0">
             {isLoading ? (
               <div className="space-y-4">
-                <Skeleton height={200} baseColor="#3f3f46" highlightColor="#52525b" className="rounded-2xl" />
-                <Skeleton height={150} baseColor="#3f3f46" highlightColor="#52525b" className="rounded-2xl" />
+                <Skeleton
+                  height={200}
+                  baseColor="#3f3f46"
+                  highlightColor="#52525b"
+                  className="rounded-2xl"
+                />
+                <Skeleton
+                  height={150}
+                  baseColor="#3f3f46"
+                  highlightColor="#52525b"
+                  className="rounded-2xl"
+                />
               </div>
             ) : (
               <div className="space-y-6">
@@ -211,27 +241,31 @@ export default function Page() {
                     <div className="flex justify-between">
                       <span className="text-gray-400">Created</span>
                       <span className="text-gray-300">
-                        {singleDoc?.createdAt ? new Date(singleDoc.createdAt).toLocaleDateString() : 'N/A'}
+                        {singleDoc?.createdAt
+                          ? new Date(singleDoc.createdAt).toLocaleDateString()
+                          : "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Last Updated</span>
                       <span className="text-gray-300">
-                        {singleDoc?.updatedAt ? new Date(singleDoc.updatedAt).toLocaleDateString() : 'N/A'}
+                        {singleDoc?.updatedAt
+                          ? new Date(singleDoc.updatedAt).toLocaleDateString()
+                          : "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Owner</span>
-                      <span className="text-blue-400">{singleDoc?.owner?.name || 'Unknown'}</span>
+                      <span className="text-blue-400">
+                        {singleDoc?.owner?.name || "Unknown"}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Collaborators */}
                 <div className="bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-700/50 p-6 shadow-2xl">
-                  <Collaborators 
-                    id={id}
-                  />
+                  <Collaborators id={id} />
                 </div>
               </div>
             )}
