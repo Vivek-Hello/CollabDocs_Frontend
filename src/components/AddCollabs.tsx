@@ -1,5 +1,5 @@
-"use client"
-import React, { useState } from 'react'
+"use client";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDocsStore } from '@/store/docsStore';
-
+import { useDocsStore } from "@/store/docsStore";
 
 type Member = { email: string; permission: "edit" | "view" };
 
@@ -22,32 +21,39 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
   const { addCollaborators, loading } = useDocsStore();
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState<string>("");
-  const [permission, setPermission] = useState<"edit"|"view">("edit");
+  const [permission, setPermission] = useState<"edit" | "view">("edit");
 
-  // Add single member to local list (like todo)
+  // Add single member to local list
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    setMembers(prev => [...prev, { email, permission }]);
-    setEmail(""); // clear input
-    setPermission("edit"); // reset permission
+    setMembers((prev) => [...prev, { email, permission }]);
+    setEmail("");
+    setPermission("edit");
   };
 
   const handleRemove = (index: number) => {
-    setMembers(prev => prev.filter((_, i) => i !== index));
+    setMembers((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit =  (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || members.length === 0) return;
-     addCollaborators(id,members); // use store function
+
+    // Map Member[] to the shape expected by the store
+    const payload = members.map((m) => ({
+      id: m.email,          // using email as id here
+      permesion: m.permission, // match store's key spelling
+    }));
+
+    addCollaborators(id, payload);
     setMembers([]);
   };
 
   return (
     <Dialog>
       <DialogTrigger>
-        <button className='p-2 flex justify-center items-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg'>
+        <button className="p-2 flex justify-center items-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
           Add Member
         </button>
       </DialogTrigger>
@@ -58,16 +64,17 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
             Enter emails and set permissions for each collaborator.
           </DialogDescription>
         </DialogHeader>
+
         {/* Add member form */}
         <form onSubmit={handleAdd} className="grid gap-4 mb-4">
           <div className="grid gap-3">
             <Label htmlFor="email">Email</Label>
             <Input
-              type='email'
+              type="email"
               id="email"
               name="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter collaborator's email"
               required
             />
@@ -82,7 +89,8 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
                   value="edit"
                   checked={permission === "edit"}
                   onChange={() => setPermission("edit")}
-                /> Edit
+                />{" "}
+                Edit
               </label>
               <label>
                 <input
@@ -91,28 +99,44 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
                   value="view"
                   checked={permission === "view"}
                   onChange={() => setPermission("view")}
-                /> View
+                />{" "}
+                View
               </label>
             </div>
           </div>
           <Button type="submit">Add to List</Button>
         </form>
 
-        {/* List of added members (like todo list) */}
+        {/* List of added members */}
         <div className="mb-4">
           {members.length > 0 ? (
             <ul className="space-y-2">
               {members.map((m, idx) => (
-                <li key={idx} className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded-lg text-gray-800">
-                  <span>{m.email} <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-xs">{m.permission}</span></span>
-                  <Button variant="outline" size="sm" onClick={() => handleRemove(idx)}>
+                <li
+                  key={idx}
+                  className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded-lg text-gray-800"
+                >
+                  <span>
+                    {m.email}{" "}
+                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-xs">
+                      {m.permission}
+                    </span>
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => handleRemove(idx)}
+                  >
                     Remove
                   </Button>
                 </li>
               ))}
             </ul>
           ) : (
-            <span className="text-gray-400">No collaborators added yet.</span>
+            <span className="text-gray-400">
+              No collaborators added yet.
+            </span>
           )}
         </div>
 
@@ -124,14 +148,14 @@ const AddCollabs: React.FC<{ id: string }> = ({ id }) => {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" >
-              { "Invite Collaborators"}
+            <Button type="submit" disabled={loading || members.length === 0}>
+              {loading ? "Inviting..." : "Invite Collaborators"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 export default AddCollabs;
