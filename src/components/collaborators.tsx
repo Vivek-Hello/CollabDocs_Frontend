@@ -2,30 +2,61 @@
 import { useDocsStore } from "@/store/docsStore";
 import React, { useEffect, useState } from "react";
 import AddCollabs from "./AddCollabs";
-import { UserStore } from "@/store/userStore"; 
-const Collaborators = ({id}) => {
-  const { updatePermission,getIsOwner,isOwner,getAllCollas,collbarotorData} = useDocsStore();
-  const {user} = UserStore();
-  const [collaborators, setCollaborators] = useState(collbarotorData);
-  const [loadingId, setLoadingId] = useState(null);
+import { UserStore } from "@/store/userStore";
 
-  // Sync with parent data
+type CollaboratorsProps = {
+  id: string | string[];
+};
+
+type Collaborator = {
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  permission: "edit" | "view";
+};
+
+const Collaborators: React.FC<CollaboratorsProps> = ({ id }) => {
+  const { updatePermission, getIsOwner, isOwner, getAllCollas, collbarotorData } =
+    useDocsStore();
+  const { user } = UserStore();
+
+  const [collaborators, setCollaborators] = useState<Collaborator[]>(
+    collbarotorData || []
+  );
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  // normalize id to string
+  const docId = Array.isArray(id) ? id[0] : id;
+
+  // Sync with store data
   useEffect(() => {
-    getAllCollas(id);
-    setCollaborators(collbarotorData);
-    getIsOwner(user?._id);
-  }, [collbarotorData,user]);
+    if (docId) {
+      getAllCollas(docId);
+    }
+    if (user?._id) {
+      getIsOwner(user._id);
+    }
+  }, [docId, user?._id, getAllCollas, getIsOwner]);
 
+  useEffect(() => {
+    if (collbarotorData) {
+      setCollaborators(collbarotorData as Collaborator[]);
+    }
+  }, [collbarotorData]);
 
-  
-  const handleToggle = async (userId) => {
-    if (!isOwner) return;
+  const handleToggle = async (userId: string) => {
+    if (!isOwner || !docId) return;
     setLoadingId(userId);
-    await updatePermission(id, userId);
+    await updatePermission(docId, userId);
     setCollaborators((prev) =>
       prev.map((c) =>
         c.user._id === userId
-          ? { ...c, permission: c.permission === "edit" ? "view" : "edit" }
+          ? {
+              ...c,
+              permission: c.permission === "edit" ? "view" : "edit",
+            }
           : c
       )
     );
@@ -36,7 +67,7 @@ const Collaborators = ({id}) => {
     return (
       <div className="flex justify-between items-center ">
         <span>No collaborator is added</span>
-        { isOwner && <AddCollabs id={id?.toString()}  />}
+        {isOwner && docId && <AddCollabs id={docId} />}
       </div>
     );
   }
@@ -44,8 +75,8 @@ const Collaborators = ({id}) => {
   return (
     <div className="bg-zinc500 shadow-2xs rounded-lg p-2 border-2 flex flex-col items-start gap-4 font-mono">
       <div className="flex w-full p-2 justify-between items-center">
-        <h1 className="">Collaborators :</h1>
-         { isOwner && <AddCollabs id={id?.toString()}  />}
+        <h1>Collaborators :</h1>
+        {isOwner && docId && <AddCollabs id={docId} />}
       </div>
       {collaborators.map((data) => (
         <div
@@ -53,8 +84,9 @@ const Collaborators = ({id}) => {
           className="w-full shadow-2xl flex justify-between items-center bg-gray-100 px-4 py-2 rounded-lg gap-2"
         >
           <div className="flex items-center gap-3">
-            {/* Optional: <img src={data.user.avatar} alt={data.user.name} ... /> */}
-            <span className="font-semibold text-gray-800">{data.user.name}</span>
+            <span className="font-semibold text-gray-800">
+              {data.user.name}
+            </span>
           </div>
           <button
             onClick={() => handleToggle(data.user._id)}
