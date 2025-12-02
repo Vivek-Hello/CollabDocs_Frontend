@@ -3,7 +3,7 @@ import { useDocsStore } from "@/store/docsStore";
 import React, { useEffect, useState } from "react";
 import AddCollabs from "./AddCollabs";
 import { UserStore } from "@/store/userStore"; 
-const Collaborators = ({ id}) => {
+const Collaborators = ({id}) => {
   const { updatePermission,getIsOwner,isOwner,getAllCollas,collbarotorData} = useDocsStore();
   const {user} = UserStore();
   const [collaborators, setCollaborators] = useState(collbarotorData);
