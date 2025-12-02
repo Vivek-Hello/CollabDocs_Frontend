@@ -57,23 +57,24 @@ export default function Page() {
   useEffect(() => setMounted(true), []);
 
   // --- Socket.IO integration ---
-  useEffect(() => {
-    if (!SOCKET_URL) return;
+ useEffect(() => {
+  if (!SOCKET_URL) return;
 
-    socketRef.current = io(SOCKET_URL, { withCredentials: true });
+  socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
-    if (id) {
-      socketRef.current.emit("joinDoc", { docId: id.toString() });
-    }
+  if (id) {
+    socketRef.current.emit("joinDoc", { docId: id.toString() });
+  }
 
-    socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
-      setContent(remoteContent);
-    });
+  socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
+    setContent(remoteContent);
+  });
 
-    return () => {
-      socketRef.current?.disconnect();
-    };
-  }, [id, SOCKET_URL]);
+  return () => {
+    socketRef.current?.disconnect();
+  };
+}, [id, SOCKET_URL]);
+
 
   // Broadcast change
   const handleContentChange = (value: string) => {
