@@ -19,17 +19,19 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 
 export default function Page() {
   const { user } = UserStore();
-  const { getSingleDoc, singleDoc, updateDoc, collbarotorData, isOwner } = useDocsStore();
+  const { getSingleDoc, singleDoc, updateDoc, collbarotorData, isOwner } =
+    useDocsStore();
 
   const [mounted, setMounted] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const { id } = useParams();
+  const params = useParams();
+  const rawId = params.id as string | string[] | undefined;
+  const docId = Array.isArray(rawId) ? rawId[0] : rawId ?? ""; // normalized id:string
   const [isEditor, setIsEditor] = useState(true);
   const router = useRouter();
 
-  // typed socket ref
   const socketRef = useRef<Socket | null>(null);
 
   // Permission check: is user editor?
@@ -43,8 +45,8 @@ export default function Page() {
 
   // Fetch doc on mount or id change
   useEffect(() => {
-    if (id) getSingleDoc(id.toString());
-  }, [id, getSingleDoc]);
+    if (docId) getSingleDoc(docId);
+  }, [docId, getSingleDoc]);
 
   // Update local state when document loads
   useEffect(() => {
@@ -57,31 +59,28 @@ export default function Page() {
   useEffect(() => setMounted(true), []);
 
   // --- Socket.IO integration ---
- useEffect(() => {
-  if (!SOCKET_URL) return;
+  useEffect(() => {
+    if (!SOCKET_URL || !docId) return;
 
-  socketRef.current = io(SOCKET_URL, { withCredentials: true });
+    socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
-  if (id) {
-    socketRef.current.emit("joinDoc", { docId: id.toString() });
-  }
+    socketRef.current.emit("joinDoc", { docId });
 
-  socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
-    setContent(remoteContent);
-  });
+    socketRef.current.on("docChangeRemote", ({ content: remoteContent }) => {
+      setContent(remoteContent);
+    });
 
-  return () => {
-    socketRef.current?.disconnect();
-  };
-}, [id, SOCKET_URL]);
-
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, [docId]);
 
   // Broadcast change
   const handleContentChange = (value: string) => {
     setContent(value);
-    if ((isEditor || isOwner) && socketRef.current) {
+    if ((isEditor || isOwner) && socketRef.current && docId) {
       socketRef.current.emit("docChange", {
-        docId: id?.toString(),
+        docId,
         content: value,
       });
     }
@@ -89,10 +88,10 @@ export default function Page() {
 
   // Save document (manual save to backend)
   const handleSave = async () => {
-    if (!id) return;
+    if (!docId) return;
     setIsSaving(true);
     try {
-      await updateDoc(id.toString(), content);
+      await updateDoc(docId, content);
     } catch (error) {
       console.error("Failed to save document:", error);
     } finally {
@@ -100,7 +99,6 @@ export default function Page() {
     }
   };
 
-  // Handle title change
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
@@ -266,7 +264,7 @@ export default function Page() {
 
                 {/* Collaborators */}
                 <div className="bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-700/50 p-6 shadow-2xl">
-                  <Collaborators id={id} />
+                  {docId && <Collaborators id={docId} />}
                 </div>
               </div>
             )}
